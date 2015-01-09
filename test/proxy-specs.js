@@ -1,6 +1,7 @@
 // transpile:mocha
 /* global describe:true, it:true */
 
+process.env.MOCK_REQUEST = true;
 import { JWProxy } from '../..';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -10,86 +11,85 @@ import 'mochawait';
 let should = chai.should();
 chai.use(chaiAsPromised);
 
+function buildReqRes (url, method, body) {
+  let req = {originalUrl: url, method, body};
+  let res = {};
+  res.headers = {};
+  res.set = (k, v) => { res[k] = v; };
+  res.send = (code, body) => { res.sentCode = code; res.sentBody = body;};
+  return [req, res];
+}
+
 describe('proxy', () => {
-  it('should exist', () => {
-    should.exist(JWProxy);
-  });
   it('should override default params', () => {
     let j = new JWProxy({server: '127.0.0.2'});
     j.server.should.equal('127.0.0.2');
     j.port.should.equal(4444);
   });
-  describe('proxying full urls', () => {
-    it('should translate host and port', () => {
-      let incomingUrl = 'http://127.0.0.2:4723/wd/hub/status';
+  it('should save session id on session creation', async () => {
+    let j = new JWProxy();
+    let [res, body] = await j.proxy('/session', 'POST', {desiredCapabilities: {}});
+    res.statusCode.should.equal(200);
+    body.should.eql({status: 0, value: {sessionId: '123'}});
+    j.sessionId.should.equal('123');
+  });
+  it('should save session id on session creation with 303', async () => {
+    let j = new JWProxy();
+    let [res, body] = await j.proxy('/session', 'POST', {desiredCapabilities: {redirect: true}});
+    res.statusCode.should.equal(303);
+    body.should.eql('http://localhost:4444/wd/hub/session/123');
+    j.sessionId.should.equal('123');
+  });
+  describe('straight proxy', () => {
+    it('should successfully proxy straight', async () => {
       let j = new JWProxy();
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/status');
+      let [res, body] = await j.proxy('/status', 'GET');
+      res.statusCode.should.equal(200);
+      body.should.eql({status: 0, value: {foo: 'bar'}});
     });
-    it('should translate the scheme', () => {
-      let incomingUrl = 'http://127.0.0.2:4723/wd/hub/status';
-      let j = new JWProxy({scheme: 'HTTPS'});
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('https://localhost:4444/wd/hub/status');
+    it('should pass along request errors', async () => {
+      let j = new JWProxy({sessionId: '123'});
+      j.proxy('/badurl', 'GET').should.eventually.be.rejectedWith("Could not proxy");
     });
-    it('should translate the base', () => {
-      let incomingUrl = 'http://127.0.0.2:4723/wd/hub/status';
-      let j = new JWProxy({base: ''});
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/status');
-    });
-    it('should translate the session id', () => {
-      let incomingUrl = 'http://127.0.0.2:4723/wd/hub/session/foobar/element';
-      let j = new JWProxy({sessionId: 'barbaz'});
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/session/barbaz/element');
-    });
-    it('should error when translating session commands without session id', () => {
-      let incomingUrl = 'http://127.0.0.2:4723/wd/hub/session/foobar/element';
-      let j = new JWProxy();
-      (() => { j.getUrlForProxy(incomingUrl); }).should.throw('session id');
+    it('should proxy error responses and codes', async () => {
+      let j = new JWProxy({sessionId: '123'});
+      let [res, body] = await j.proxy('/element/bad/text', 'GET');
+      res.statusCode.should.equal(500);
+      body.should.eql({status: 11, value: {message: 'Invisible element'}});
     });
   });
-  describe('proxying partial urls', () => {
-    it('should proxy /status', () => {
-      let incomingUrl = '/status';
+  describe('command proxy', () => {
+    it('should successfully proxy command', async () => {
       let j = new JWProxy();
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/status');
+      let res = await j.command('/status', 'GET');
+      res.should.eql({foo: 'bar'});
     });
-    it('should proxy /session', () => {
-      let incomingUrl = '/session';
+    it('should pass along request errors', async () => {
+      let j = new JWProxy({sessionId: '123'});
+      j.command('/badurl', 'GET').should.eventually.be.rejectedWith("Could not proxy");
+    });
+    it('should throw when a command fails', async () => {
+      let j = new JWProxy({sessionId: '123'});
+      let e = null;
+      try {
+        await j.command('/element/bad/text', 'GET');
+      } catch (err) {
+        e = err;
+      }
+      should.exist(e);
+      e.message.should.contain('Original error: Invisible element');
+      e.value.should.eql({message: 'Invisible element'});
+      e.status.should.equal(11);
+    });
+  });
+  describe('req/res proxy', () => {
+    it('should successfully proxy via req and send to res', async () => {
       let j = new JWProxy();
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/session');
-    });
-    it('should proxy /sessions', () => {
-      let incomingUrl = '/sessions';
-      let j = new JWProxy();
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/sessions');
-    });
-    it('should proxy session commands based off /session', () => {
-      let incomingUrl = '/session/foobar/element';
-      let j = new JWProxy({sessionId: 'barbaz'});
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/session/barbaz/element');
-    });
-    it('should error session commands based off /session without session id', () => {
-      let incomingUrl = '/session/foobar/element';
-      let j = new JWProxy();
-      (() => { j.getUrlForProxy(incomingUrl); }).should.throw('session id');
-    });
-    it('should proxy session commands without /session', () => {
-      let incomingUrl = '/element';
-      let j = new JWProxy({sessionId: 'barbaz'});
-      let proxyUrl = j.getUrlForProxy(incomingUrl);
-      proxyUrl.should.equal('http://localhost:4444/wd/hub/session/barbaz/element');
-    });
-    it('should error session commands without /session without session id', () => {
-      let incomingUrl = '/element';
-      let j = new JWProxy();
-      (() => { j.getUrlForProxy(incomingUrl); }).should.throw('session id');
+      let [req, res] = buildReqRes('/status', 'GET');
+      await j.proxyReqRes(req, res);
+      res.headers['Content-type'].should.equal('application/json');
+      res.sentCode.should.equal(200);
+      res.sentBody.should.eql({status: 0, value: {foo: 'bar'}});
     });
   });
 });
