@@ -1,4 +1,4 @@
-import { default as proxy } from './lib/proxy';
+import { default as JWProxy } from './lib/proxy';
 
-export { proxy };
+export { JWProxy };
 
