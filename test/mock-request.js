@@ -9,7 +9,7 @@ function resFixture (url, method, json) {
     if (json.desiredCapabilities && json.desiredCapabilities.redirect) {
       return [303, 'http://localhost:4444/wd/hub/session/123'];
     } else {
-      return [200, {status: 0, value: {sessionId: '123'}}];
+      return [200, {status: 0, sessionId: '123', value: {browserName: 'boo'}}];
     }
   }
   throw new Error("Can't handle url " + url);

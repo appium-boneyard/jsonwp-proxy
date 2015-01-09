@@ -36,8 +36,10 @@
   },
   "devDependencies": {
     "appium-gulp-plugins": "^0.0.10",
+    "asyncbox": "^1.0.4",
     "chai": "^1.10.0",
     "chai-as-promised": "^4.1.1",
+    "chromedriver": "^2.12.0",
     "del": "^1.1.1",
     "gulp": "^3.8.10",
     "gulp-jscs": "^1.3.1",

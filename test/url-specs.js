@@ -72,6 +72,14 @@ describe('proxying partial urls', () => {
     let j = new JWProxy();
     (() => { j.getUrlForProxy(incomingUrl); }).should.throw('session id');
   });
+  it('should proxy session commands based off /session as ""', () => {
+    let incomingUrl = '';
+    let j = new JWProxy();
+    (() => { j.getUrlForProxy(incomingUrl); }).should.throw('session id');
+    j = new JWProxy({sessionId: '123'});
+    let proxyUrl = j.getUrlForProxy(incomingUrl);
+    proxyUrl.should.equal('http://localhost:4444/wd/hub/session/123');
+  });
   it('should proxy session commands without /session', () => {
     let incomingUrl = '/element';
     let j = new JWProxy({sessionId: 'barbaz'});
