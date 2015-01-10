@@ -5,6 +5,9 @@ function resFixture (url, method, json) {
   if (/\/element\/bad\/text$/.test(url)) {
     return [500, {status: 11, value: {message: 'Invisible element'}}];
   }
+  if (/\/element\/200\/text$/.test(url)) {
+    return [200, {status: 11, value: {message: 'Invisible element'}}];
+  }
   if (/\/session$/.test(url) && method === "POST") {
     if (json.desiredCapabilities && json.desiredCapabilities.redirect) {
       return [303, 'http://localhost:4444/wd/hub/session/123'];
