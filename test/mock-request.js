@@ -15,6 +15,9 @@ function resFixture (url, method, json) {
       return [200, {status: 0, sessionId: '123', value: {browserName: 'boo'}}];
     }
   }
+  if (/\/nochrome$/.test(url)) {
+    return [100, {status: 0, value: {message: 'chrome not reachable'}}];
+  }
   throw new Error("Can't handle url " + url);
 }
 

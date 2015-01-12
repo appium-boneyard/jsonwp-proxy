@@ -98,6 +98,19 @@ describe('proxy', () => {
       e.value.should.eql({message: 'Invisible element'});
       e.status.should.equal(11);
     });
+    it('should throw when a command fails with a 100', async () => {
+      let j = mockProxy({sessionId: '123'});
+      let e = null;
+      try {
+        await j.command('/session/badchrome/nochrome', 'GET');
+      } catch (err) {
+        e = err;
+      }
+      should.exist(e);
+      e.message.should.contain('Original error: chrome not reachable');
+      e.value.should.eql({message: 'chrome not reachable'});
+      e.status.should.equal(0);
+    });
   });
   describe('req/res proxy', () => {
     it('should successfully proxy via req and send to res', async () => {
