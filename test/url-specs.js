@@ -72,6 +72,13 @@ describe('proxying partial urls', () => {
     let j = new JWProxy();
     (() => { j.getUrlForProxy(incomingUrl); }).should.throw('session id');
   });
+  it('should proxy session commands based off /wd/hub', () => {
+    let incomingUrl = '/wd/hub/session/3d001db2-7987-42a7-975d-8d5d5304083f/timeouts/implicit_wait';
+    let j = new JWProxy({sessionId: '123'});
+    let proxyUrl = j.getUrlForProxy(incomingUrl);
+    proxyUrl.should.equal('http://localhost:4444/wd/hub/session/123/timeouts/implicit_wait');
+
+  });
   it('should proxy session commands based off /session as ""', () => {
     let incomingUrl = '';
     let j = new JWProxy();
