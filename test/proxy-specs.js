@@ -4,7 +4,6 @@
 import { JWProxy } from '../..';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-//import Q from 'q';
 import 'mochawait';
 
 let should = chai.should();

@@ -23,12 +23,13 @@
     "lib": "lib"
   },
   "dependencies": {
-    "appium-transpile-runtime": "^0.0.4",
+    "babel-runtime": "^5.0.12",
     "jsonwp-status": "0.0.1",
-    "lodash": "^2.4.1",
+    "lodash": "^3.6.0",
     "npmlog": "^1.0.0",
     "q": "^1.1.2",
-    "request": "^2.51.0"
+    "request": "^2.51.0",
+    "source-map-support": "^0.2.10"
   },
   "scripts": {
     "prepublish": "./node_modules/.bin/gulp prepublish",
@@ -36,22 +37,14 @@
     "watch": "./node_modules/.bin/gulp"
   },
   "devDependencies": {
-    "appium-gulp-plugins": "^0.0.10",
-    "asyncbox": "^1.0.4",
-    "chai": "^1.10.0",
+    "appium-gulp-plugins": "^1.0.3",
+    "asyncbox": "^2.0.2",
+    "chai": "^2.2.0",
     "chai-as-promised": "^4.1.1",
     "chromedriver": "^2.12.0",
-    "del": "^1.1.1",
     "gulp": "^3.8.10",
-    "gulp-jscs": "^1.3.1",
-    "gulp-jshint": "https://github.com/appium/gulp-jshint/archive/master.tar.gz",
-    "gulp-mocha": "^2.0.0",
-    "jshint-stylish": "^1.0.0",
-    "merge-stream": "^0.1.6",
     "mocha": "^2.1.0",
-    "mochawait": "^1.1.0",
-    "run-sequence": "^1.0.2",
-    "vinyl-paths": "^1.0.0",
-    "yargs": "^1.3.3"
+    "mochawait": "^2.0.0",
+    "yargs": "^3.7.0"
   }
 }
