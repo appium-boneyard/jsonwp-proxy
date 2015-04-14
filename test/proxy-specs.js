@@ -1,12 +1,13 @@
 // transpile:mocha
 /* global describe:true, it:true */
 
+// comment out the following definition for logs to show up in testing
 import { JWProxy } from '../..';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'mochawait';
 
-let should = chai.should();
+const should = chai.should();
 chai.use(chaiAsPromised);
 
 function buildReqRes (url, method, body) {
@@ -14,7 +15,12 @@ function buildReqRes (url, method, body) {
   let res = {};
   res.headers = {};
   res.set = (k, v) => { res[k] = v; };
-  res.send = (code, body) => { res.sentCode = code; res.sentBody = body;};
+  res.send = (code, body) => {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {}
+    res.sentCode = code; res.sentBody = body;
+  };
   return [req, res];
 }
 
@@ -119,6 +125,19 @@ describe('proxy', () => {
       res.headers['Content-type'].should.equal('application/json');
       res.sentCode.should.equal(200);
       res.sentBody.should.eql({status: 0, value: {foo: 'bar'}});
+    });
+    it('should rewrite the inner session id so it doesnt change', async () => {
+      let j = mockProxy({sessionId: '123'});
+      let [req, res] = buildReqRes('/element/200/value', 'GET');
+      await j.proxyReqRes(req, res);
+      res.sentBody.should.eql({status: 0, value: 'foobar', sessionId: '123'});
+    });
+    it('should proxy strange responses', async () => {
+      let j = mockProxy({sessionId: '123'});
+      let [req, res] = buildReqRes('/nochrome', 'GET');
+      await j.proxyReqRes(req, res);
+      res.sentCode.should.equal(100);
+      res.sentBody.should.eql({status: 0, value: {message: 'chrome not reachable'}});
     });
   });
 });
