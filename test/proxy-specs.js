@@ -15,11 +15,15 @@ function buildReqRes (url, method, body) {
   let res = {};
   res.headers = {};
   res.set = (k, v) => { res[k] = v; };
-  res.send = (code, body) => {
+  res.status = (code) => {
+    res.sentCode = code;
+    return res;
+  };
+  res.send = (body) => {
     try {
       body = JSON.parse(body);
     } catch (e) {}
-    res.sentCode = code; res.sentBody = body;
+    res.sentBody = body;
   };
   return [req, res];
 }
