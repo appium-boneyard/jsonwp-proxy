@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "appium-logger": "^1.0.0",
-    "babel-runtime": "^5.1.9",
+    "babel-runtime": "5.5.5",
     "jsonwp-status": "0.0.1",
     "lodash": "^3.6.0",
     "q": "^1.1.2",
