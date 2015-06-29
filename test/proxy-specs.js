@@ -136,6 +136,12 @@ describe('proxy', () => {
       await j.proxyReqRes(req, res);
       res.sentBody.should.eql({status: 0, value: 'foobar', sessionId: '123'});
     });
+    it('should rewrite the inner session id with sessionId in url', async () => {
+      let j = mockProxy({sessionId: '123'});
+      let [req, res] = buildReqRes('/wd/hub/session/456/element/200/value', 'POST');
+      await j.proxyReqRes(req, res);
+      res.sentBody.should.eql({status: 0, value: 'foobar', sessionId: '456'});
+    });
     it('should proxy strange responses', async () => {
       let j = mockProxy({sessionId: '123'});
       let [req, res] = buildReqRes('/nochrome', 'GET');
