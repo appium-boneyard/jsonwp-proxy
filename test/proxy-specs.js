@@ -53,6 +53,43 @@ describe('proxy', () => {
     body.should.eql('http://localhost:4444/wd/hub/session/123');
     j.sessionId.should.equal('123');
   });
+  describe('getUrlForProxy', () => {
+    it('should modify session id, host, and port', async () => {
+      let j = mockProxy({sessionId: '123'});
+      j.getUrlForProxy('http://host.com:1234/wd/hub/session/456/element/200/value')
+       .should.eql('http://localhost:4444/wd/hub/session/123/element/200/value');
+    });
+    it('should prepend scheme, host and port if not provided', async () => {
+      let j = mockProxy({sessionId: '123'});
+      j.getUrlForProxy('/wd/hub/session/456/element/200/value')
+       .should.eql('http://localhost:4444/wd/hub/session/123/element/200/value');
+    });
+    it('should work with urls which do not have sessiopn ids', async () => {
+      let j = mockProxy({sessionId: '123'});
+      j.getUrlForProxy('http://host.com:1234/wd/hub/session')
+       .should.eql('http://localhost:4444/wd/hub/session');
+
+      newUrl = j.getUrlForProxy('/wd/hub/session');
+      newUrl.should.eql('http://localhost:4444/wd/hub/session');
+    });
+    it('should throw an error if url requires a sessionId but its null', async () => {
+      let j = mockProxy();
+      let e;
+      try {
+        j.getUrlForProxy('/wd/hub/session/456/element/200/value');
+      } catch (err) {
+        e = err;
+      }
+      should.exist(e);
+      e.message.should.contain('without session id');
+    });
+    it('should not throw an error if url does not require a session id and its null', async () => {
+      let j = mockProxy();
+      let newUrl = j.getUrlForProxy('/wd/hub/status');
+
+      should.exist(newUrl);
+    });
+  });
   describe('straight proxy', () => {
     it('should successfully proxy straight', async () => {
       let j = mockProxy();
@@ -141,6 +178,12 @@ describe('proxy', () => {
       let [req, res] = buildReqRes('/wd/hub/session/456/element/200/value', 'POST');
       await j.proxyReqRes(req, res);
       res.sentBody.should.eql({status: 0, value: 'foobar', sessionId: '456'});
+    });
+    it('should pass through urls that do not require session IDs', async () => {
+      let j = mockProxy({sessionId: '123'});
+      let [req, res] = buildReqRes('/wd/hub/status', 'GET');
+      await j.proxyReqRes(req, res);
+      res.sentBody.should.eql({status: 0, value: {'foo':'bar'}});
     });
     it('should proxy strange responses', async () => {
       let j = mockProxy({sessionId: '123'});
