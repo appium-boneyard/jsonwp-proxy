@@ -9,10 +9,10 @@
   "license": "Apache License 2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/appium/appium-jsonwp-proxy.git"
+    "url": "https://github.com/appium/jsonwp-proxy.git"
   },
   "bugs": {
-    "url": "https://github.com/appium/appium-jsonwp-proxy/issues"
+    "url": "https://github.com/appium/jsonwp-proxy/issues"
   },
   "engines": [
     "node"
