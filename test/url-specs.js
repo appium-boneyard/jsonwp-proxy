@@ -1,11 +1,10 @@
 // transpile:mocha
 /* global describe:true, it:true */
 
-import { JWProxy } from '../..';
+import JWProxy from '..';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-//import Q from 'q';
-import 'mochawait';
+
 
 chai.should();
 chai.use(chaiAsPromised);
