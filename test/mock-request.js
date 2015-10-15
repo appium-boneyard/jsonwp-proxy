@@ -24,15 +24,18 @@ function resFixture (url, method, json) {
   throw new Error("Can't handle url " + url);
 }
 
-export function request (opts, cb) {
+async function request (opts) {
   if (/badurl$/.test(opts.url)) {
-    return cb(new Error("noworky"));
+    throw new Error("noworky");
   }
 
-  let response = {};
-  let error = null;
-  let [code, body] = resFixture(opts.url, opts.method, opts.json);
-  response.statusCode = code;
-  response.headers = {'Content-type': 'application/json'};
-  cb(error, response, body);
+  let [statusCode, body] = resFixture(opts.url, opts.method, opts.json);
+  let response = {
+    statusCode,
+    headers: {'Content-type': 'application/json'},
+    body
+  };
+  return response;
 }
+
+export default request;

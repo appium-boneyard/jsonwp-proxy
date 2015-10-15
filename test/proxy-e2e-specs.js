@@ -1,13 +1,13 @@
 // transpile:mocha
 /* global describe:true, it:true, before:true, after:true */
 
-import { JWProxy } from '../..';
+import JWProxy from '..';
 import cp from 'child_process';
 import chai from 'chai';
 import { sleep } from 'asyncbox';
 import chromedriver from 'chromedriver';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
+
 
 let should = chai.should();
 chai.use(chaiAsPromised);
@@ -19,6 +19,11 @@ describe('proxy', () => {
     cdProc = cp.spawn(chromedriver.path, ['--url-base=/wd/hub', '--port=4444']);
     await sleep(1000);
   });
+  after(async () => {
+    cdProc.kill();
+    await sleep(500);
+  });
+
   it('should proxy status straight', async () => {
     let [res, resBody] = await j.proxy('/status', 'GET');
     resBody = JSON.parse(resBody);
@@ -39,9 +44,5 @@ describe('proxy', () => {
   it('should quit a session', async () => {
     let res = await j.command('', 'DELETE');
     should.not.exist(res);
-  });
-  after(async () => {
-    cdProc.kill();
-    await sleep(500);
   });
 });

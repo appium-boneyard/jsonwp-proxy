@@ -1,11 +1,11 @@
 // transpile:mocha
 /* global describe:true, it:true */
 
-// comment out the following definition for logs to show up in testing
-import { JWProxy } from '../..';
+import JWProxy from '..';
+import request from './mock-request';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import 'mochawait';
+
 
 const should = chai.should();
 chai.use(chaiAsPromised);
@@ -29,8 +29,11 @@ function buildReqRes (url, method, body) {
 }
 
 function mockProxy (opts = {}) {
-  opts.mockRequest = true;
-  return new JWProxy(opts);
+  let proxy = new JWProxy(opts);
+  proxy.request = async function (...args) {
+    return await request(...args);
+  };
+  return proxy;
 }
 
 describe('proxy', () => {
@@ -69,7 +72,7 @@ describe('proxy', () => {
       j.getUrlForProxy('http://host.com:1234/wd/hub/session')
        .should.eql('http://localhost:4444/wd/hub/session');
 
-      newUrl = j.getUrlForProxy('/wd/hub/session');
+      let newUrl = j.getUrlForProxy('/wd/hub/session');
       newUrl.should.eql('http://localhost:4444/wd/hub/session');
     });
     it('should throw an error if url requires a sessionId but its null', async () => {
