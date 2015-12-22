@@ -26,7 +26,6 @@
     "appium-logger": "^2.0.0",
     "appium-support": "^2.0.6",
     "babel-runtime": "=5.8.24",
-    "continuation-local-storage": "^3.1.4",
     "jsonwp-status": "0.0.1",
     "lodash": "^3.10.1",
     "request-promise": "^1.0.1",
